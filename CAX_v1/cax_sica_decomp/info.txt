@@ -1,0 +1,1 @@
+Attempt 1 code by Darren (parent Original); applies a Life-like CAX CA simulation for every cell in the IC.
