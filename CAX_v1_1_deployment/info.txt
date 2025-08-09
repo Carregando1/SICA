@@ -1,0 +1,8 @@
+cax_sica: Attempt 2 code. Best runtime by far.
+cax_sica_decomp: Attempt 1 code. Very slow runtime.
+Edited Code: Original genetic algorithm edited for readability.
+
+Other files: 
+results files: The number after the 'results' indicates the maximum size of the dimension obtained during the testcase compilation; each test was run on either the CPU or GPU. Each file contains two arrays of 2-tuples: the dimtime array, which indicates the time used for SICA simulations of varying square spatial dims but always exactly of 100 timesteps, and the steptime array, which indicates the time used for SICA simulations of varying numbers of timesteps but a constant 200x200 square dim.
+sica-time-comparison: Runs each algorithm (original; attempt 1; attempt 2) with a sample CA, outputs the time taken for each algorithm, and compares the results of each algorithm to ensure consistency.
+sica-time-comparison-addtl-tests files: The algorithm that simulates large CAs with the attempt 2 code only with either constant dimsize or timestep number: outputs arrays that are then transferred to the results files as well as graphs that plot the data as well as regression curves for 5 common complexities. Can be run on CPU or GPU; each filename specifies which it is supposed to be run on.
