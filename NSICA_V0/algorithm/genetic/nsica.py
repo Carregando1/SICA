@@ -59,7 +59,7 @@ Thus, the final state of this cell would be 1.
 class NSICAPerceive(ConvPerceive):
 	"""2-State SICA Perceive class."""
 
-	def __init__(self, rngs: nnx.Rngs, *, types: int = 2, padding: str = "SAME"):
+	def __init__(self, rngs: nnx.Rngs, *, states: int = 2, padding: str = "SAME"):
 		"""Initialize SICAPerceive."""
 		channel_size = 1
 		super().__init__(
@@ -75,7 +75,7 @@ class NSICAPerceive(ConvPerceive):
 		kernel = jnp.expand_dims(kernel, axis=-2)
 		self.conv.kernel = nnx.Param(kernel)
 
-		self.types = types
+		self.states = states
 	
 	def __call__(self, state: State) -> Perception:
 		"""Apply perception to the input state.
@@ -88,7 +88,7 @@ class NSICAPerceive(ConvPerceive):
 
 		"""
 		convolution = jnp.array(self.conv(10**state), dtype=jnp.int64)
-		"""Convolutional workaround is constructed based on worst case of types=12 to avoid for-loops. Currently avoiding all for-loop routines. Should for-loops be used instead?"""
+		"""Convolutional workaround is constructed based on worst case of states=12 to avoid for-loops. Currently avoiding all for-loop routines. Should for-loops be used instead?"""
 		alivestate = (
 			jnp.array([jnp.round(jnp.log10(convolution[:,:,0]))]),
 			jnp.array([convolution[:,:,1]%(10**1)]), 
@@ -109,11 +109,11 @@ class NSICAPerceive(ConvPerceive):
 class NSICAUpdate(Update):
 	"""2-State SICA Update class."""
 
-	def __init__(self, time, types, rngs: nnx.Rngs):
+	def __init__(self, time, states, rngs: nnx.Rngs):
 		"""Initialize SICAUpdate."""
 		self.srt = jnp.zeros((1, 1, 1, 18))
 		self.time = jnp.array([time])
-		self.types = types
+		self.states = states
 
 	def __call__(self, state: State, perception: Perception, input: Input | None = None) -> State:
 		"""Apply the SICA rules based on SRT input.
@@ -130,23 +130,23 @@ class NSICAUpdate(Update):
 		self_state = perception[0]
 		"""Currently avoiding all for-loop routines here. Should for-loops be used instead?"""
 		indexcontributions = jnp.round(jnp.array([
-			jax.scipy.special.factorial(6+self.types-perception[2])/jax.scipy.special.factorial(self.types-1)/jax.scipy.special.factorial(7-perception[2]),
-			jax.scipy.special.factorial(5+self.types-perception[3]-perception[2])/jax.scipy.special.factorial(self.types-1)/jax.scipy.special.factorial(6-perception[3]-perception[2]),
-			jax.scipy.special.factorial(4+self.types-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.types-1)/jax.scipy.special.factorial(5-perception[4]-perception[3]-perception[2]),
-			jax.scipy.special.factorial(3+self.types-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.types-1)/jax.scipy.special.factorial(4-perception[5]-perception[4]-perception[3]-perception[2]),
-			jax.scipy.special.factorial(2+self.types-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.types-1)/jax.scipy.special.factorial(3-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
-			jax.scipy.special.factorial(1+self.types-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.types-1)/jax.scipy.special.factorial(2-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
-			jax.scipy.special.factorial(self.types-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.types-1)/jax.scipy.special.factorial(1-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
-			jax.scipy.special.factorial(-1+self.types-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.types-1)/jax.scipy.special.factorial(-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
-			jax.scipy.special.factorial(-2+self.types-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.types-1)/jax.scipy.special.factorial(-1-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
-			jax.scipy.special.factorial(-3+self.types-perception[11]-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.types-1)/jax.scipy.special.factorial(-2-perception[11]-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
-			jax.scipy.special.factorial(-4+self.types-perception[12]-perception[11]-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.types-1)/jax.scipy.special.factorial(-3-perception[12]-perception[11]-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
+			jax.scipy.special.factorial(6+self.states-perception[2])/jax.scipy.special.factorial(self.states-1)/jax.scipy.special.factorial(7-perception[2]),
+			jax.scipy.special.factorial(5+self.states-perception[3]-perception[2])/jax.scipy.special.factorial(self.states-2)/jax.scipy.special.factorial(7-perception[3]-perception[2]),
+			jax.scipy.special.factorial(4+self.states-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.states-3)/jax.scipy.special.factorial(7-perception[4]-perception[3]-perception[2]),
+			jax.scipy.special.factorial(3+self.states-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.states-4)/jax.scipy.special.factorial(7-perception[5]-perception[4]-perception[3]-perception[2]),
+			jax.scipy.special.factorial(2+self.states-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.states-5)/jax.scipy.special.factorial(7-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
+			jax.scipy.special.factorial(1+self.states-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.states-6)/jax.scipy.special.factorial(7-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
+			jax.scipy.special.factorial(self.states-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.states-7)/jax.scipy.special.factorial(7-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
+			jax.scipy.special.factorial(-1+self.states-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.states-8)/jax.scipy.special.factorial(7-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
+			jax.scipy.special.factorial(-2+self.states-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.states-9)/jax.scipy.special.factorial(7-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
+			jax.scipy.special.factorial(-3+self.states-perception[11]-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.states-10)/jax.scipy.special.factorial(7-perception[11]-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
+			jax.scipy.special.factorial(-4+self.states-perception[12]-perception[11]-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2])/jax.scipy.special.factorial(self.states-11)/jax.scipy.special.factorial(7-perception[12]-perception[11]-perception[10]-perception[9]-perception[8]-perception[7]-perception[6]-perception[5]-perception[4]-perception[3]-perception[2]),
 		]))
 		position = jnp.zeros(self_state.shape).astype(jnp.int32)
 		position = jnp.concatenate((jnp.array([jnp.indices(self_state.shape)[0]]), jnp.array([jnp.indices(self_state.shape)[1]])), axis=0)
 		
-		indices = (self_state * math.comb(7+self.types, 8)) + jnp.sum(indexcontributions[0:self.types-1], axis=0).astype(jnp.int32)
-		state = jnp.where(self.srt[self.time[0], position[0], position[1], indices] == 1, 1.0, 0.0)
+		indices = (self_state * math.comb(7+self.states, 8)) + jnp.sum(indexcontributions[0:self.states-1], axis=0).astype(jnp.int32)
+		state = self.srt[self.time[0], position[0], position[1], indices]
 		self.time += jnp.array([1])
 		return state.reshape(state.shape[0], -1, 1)
 
@@ -159,18 +159,18 @@ class NSICAUpdate(Update):
 
 		"""
 		assert len(srt.shape) == 4, f"Expected 4 dimensions in SRT, received {len(srt.shape)}"
-		assert (self.types * math.comb(7+self.types, 8) == srt.shape[3]), f"Expected {self.types * math.comb(7+self.types, 8)} indices in SRT ruleset, found {srt.shape[3]}"
+		assert (self.states * math.comb(7+self.states, 8) == srt.shape[3]), f"Expected {self.states * math.comb(7+self.states, 8)} indices in SRT ruleset, found {srt.shape[3]}"
 		self.srt = srt
 
 class NSICA(CA):
 	"""Generalized (N-State) Spacetime-Inhomogeneous Cellular Automata."""
 
-	def __init__(self, time, rngs: nnx.Rngs, *, types: int = 2, metrics_fn: Callable = metrics_fn):
+	def __init__(self, time, rngs: nnx.Rngs, *, states: int = 2, metrics_fn: Callable = metrics_fn):
 		"""Initialize N-state SICA."""
-		assert (types <= 12), f"Failed to allocate {types * math.comb(7+types, 8)} array slots for individual SRT ruleset allocation.\nEnsure that types <= 12; received value: {types}"
-		assert (types >= 2), f"Number of SRT types must be at least 2 (received value: {types})"
-		perceive = NSICAPerceive(rngs=rngs, types=types)
-		update = NSICAUpdate(time=time, rngs=rngs, types=types)
+		assert (states <= 12), f"Failed to allocate {states * math.comb(7+states, 8)} array slots for individual SRT ruleset allocation.\nEnsure that states <= 12; received value: {states}"
+		assert (states >= 2), f"Number of SRT states must be at least 2 (received value: {states})"
+		perceive = NSICAPerceive(rngs=rngs, states=states)
+		update = NSICAUpdate(time=time, rngs=rngs, states=states)
 		super().__init__(perceive, update, metrics_fn=metrics_fn)
 
 	@nnx.jit
