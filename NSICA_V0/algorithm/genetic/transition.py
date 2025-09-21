@@ -5,13 +5,13 @@ import jax.numpy as jnp
 from flax import nnx
 from nsica import NSICA
 
-def transition(ic, srt, steps, types):
+def transition(ic, srt, steps, states):
 	"""
 	transition.py: Takes in an IC and SRT and outputs the state after {steps} steps of simulation of an NSICA.
 	ic: a 2D square array with only 0s and 1s.
 	srt: a 4D array with dims (time, width, height, 18), the 18 being 2 cell states * 9 neighbor states.
 	steps: The number of steps the NSICA is run. Must be less than srt.shape[0].
-	types: The number of types of the NSICA.
+	states: The number of states of the NSICA.
 	"""
 
 	seed = 0
@@ -19,7 +19,7 @@ def transition(ic, srt, steps, types):
 	time = 0
 	rngs = nnx.Rngs(seed)
 
-	ca = NSICA(time=time, rngs=rngs, types=types)
+	ca = NSICA(time=time, rngs=rngs, states=states)
 	state_init = ic.reshape(ic.shape[0], -1, 1).astype(float)
 	srt = srt.astype(float)
 	ca.update.update_srt(srt=srt)
