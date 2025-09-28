@@ -1,5 +1,5 @@
-from cax_sica.genetic.mutation import Mutator, RulesetMutator, ArbitraryRulesetMutator, MutationSet
-from cax_sica.genetic.optimize import Optimizer
-from cax_sica.genetic.state import CurrentState
-from cax_sica.genetic.transition import transition
-from cax_sica.genetic.sica2s import SICA,SICAPerceive,SICAUpdate
+from .mutation import Mutator, ArbitraryRulesetMutator, MutationSet
+from .optimize import Optimizer
+from .state import CurrentState
+from .transition import transition
+from .nsica import NSICA,NSICAPerceive,NSICAUpdate

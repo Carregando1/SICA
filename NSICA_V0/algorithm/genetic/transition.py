@@ -3,7 +3,7 @@
 import jax
 import jax.numpy as jnp
 from flax import nnx
-from nsica import NSICA
+from .nsica import NSICA
 
 def transition(ic, srt, steps, states):
 	"""

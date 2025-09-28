@@ -23,7 +23,7 @@ class CurrentState:
 
     initial: NDArray[np.int32]
     rules: NDArray[np.int32]
-    ruleindices: NDArray[np.int32] | None = None
+    states: int
     _generated: NDArray[np.int32] | None = None
 
     # generate results get cached.
@@ -33,6 +33,6 @@ class CurrentState:
         """
         if self._generated is not None:
             return self._generated
-        grid = transition(self.initial, self.rules, self.rules.shape[0])
+        grid = transition(self.initial, self.rules, self.rules.shape[0], self.states)
         self._generated = grid
         return grid

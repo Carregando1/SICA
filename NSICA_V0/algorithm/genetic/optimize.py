@@ -40,7 +40,7 @@ class Optimizer:
         old_state = self.state
         new_state, mutations = self.mutator.mutate(self.state)
         #print(f"Mutate time: {time.time() - init}")
-        init = time.time()
+        #init = time.time()
         new_value = self.objective(new_state.generate())
         #print(f"Generate time: {time.time() - init}")
         #init = time.time()
@@ -77,13 +77,13 @@ class Optimizer:
         ic_mut_addition = np.zeros(new_state.initial.shape)
         srt_mut_addition = np.zeros(new_state.rules.shape)
 
-        ic_mut_addition[tuple(ic_muts[:, 0:2])] = 1
-        srt_mut_addition[tuple(srt_muts[:, 0:3])] = 1
+        ic_mut_addition[tuple(ic_muts[:, 0:2])] = ic_muts[:, 3]
+        srt_mut_addition[tuple(srt_muts[:, 0:3])] = ic_muts[:, 4]
 
         new_state.initial += ic_mut_addition
-        new_state.initial %= 2
+        new_state.initial %= self.states
         new_state.rules += srt_mut_addition
-        new_state.rules %= 2
+        new_state.rules %= self.states
 
         new_value = self.objective(new_state.generate())
 

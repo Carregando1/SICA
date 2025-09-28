@@ -1,9 +1,9 @@
-This version of the N-State SICA generalization (NSICA), v0, is the initial creation of the generalization--- This is a beta version; not fully tested or completed. This version has the "SAME" padding implementation (contrary to previous SICA Project versions that use "CIRCULAR"), and avoids for loops within the new NSICAPerceive and NSICAUpdate classes. The NSICAPerceive relies on an arithmetic workaround in order to determine the amount of cells in each state. Currently (n>2)-state SICA have not been tested; the code passes testcase for 2-state SICA.
+This version of the N-State SICA generalization (NSICA), v0, is the initial creation of the generalization--- This is a beta version; not fully tested or completed. This version has the "SAME" padding implementation (contrary to previous SICA Project versions that use "CIRCULAR"), and avoids for loops within the new NSICAPerceive and NSICAUpdate classes. The NSICAPerceive relies on an arithmetic workaround in order to determine the amount of cells in each state. Currently (n>3)-state SICA have not been tested; the code passes testcase for 2;3-state SICA.
 
 For more information of the specific changes in the SICA system as a result of generalization, see the nsica.py file.
 
 To Do From Here:
 - Decide the for loop usage in nsica.py
-- Test (n>2)-state SICA
-- Adapt mutations and optimize to nsica; test-objective already created
+- Test (n>3)-state SICA
+- Adapt optimize and __init__ to nsica; test-objective already created
 - Ensure functionality of generate_data.ipynb

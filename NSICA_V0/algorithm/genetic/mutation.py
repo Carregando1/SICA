@@ -45,11 +45,13 @@ class ArbitraryRulesetMutator(Mutator):
     def __init__(
         self,
         grid_size: int = 32,
-        states: int = 2,
         state_init_p: List[float] | None = None,
         mutate_p: float = 1 / (32**2),
         rule_mutate_p: float = 1 / 3,
         strict: bool = False,
+        states: int = 2,
+        ic_enable: bool = True,
+        srt_enable: bool = True,
     ):
         """
         Initializes the arbitrary ruleset mutator.
@@ -74,6 +76,10 @@ class ArbitraryRulesetMutator(Mutator):
         # initialize strict mode: strict = SRT mutations must correspond to the locations of the IC mutations
         self.strict = strict
 
+        # initialize ICmutation and SRTmutation permissions
+        self.ic_enable = ic_enable
+        self.srt_enable = srt_enable
+
         assert (
             state_init_p is None or len(state_init_p) == states
         ), "The length of the state probs array does not equal the number of valid states!"
@@ -91,7 +97,7 @@ class ArbitraryRulesetMutator(Mutator):
             size=(self.grid_size, self.grid_size),
             p=self.state_init_p,
         )
-        return CurrentState(rules=rules, initial=initial)
+        return CurrentState(rules=rules, initial=initial, states=self.states)
 
 
 
@@ -102,6 +108,7 @@ class ArbitraryRulesetMutator(Mutator):
         new_state = CurrentState(
             initial=state.initial.copy(),
             rules=state.rules.copy(),
+            states=state.states,
         )
 
         # this logic is shared with RulesetMutator
@@ -112,22 +119,23 @@ class ArbitraryRulesetMutator(Mutator):
         #Note that this program is different from the original genetic algorithm in that the ruleset mutations need not be in the same place as the initial mutations!
 
         #Mutate initials.
-
-        new_state.initial = state.initial + ((np.random.rand(state.initial.shape[0],state.initial.shape[1]) < self.mutate_p)*np.random.randint(1, self.states))
-        new_state.initial = new_state.initial%self.states
-        a = np.nonzero(new_state.initial != state.initial)
-        mutations.ic_mutations = np.concatenate((np.transpose(a), state.initial[a].reshape(-1,1), new_state.initial[a].reshape(-1,1)), axis=1).tolist()
+        if (self.ic_enable):
+            new_state.initial = state.initial + ((np.random.rand(state.initial.shape[0],state.initial.shape[1]) < self.mutate_p)*np.random.randint(1, self.states))
+            new_state.initial = new_state.initial%self.states
+            a = np.nonzero(new_state.initial != state.initial)
+            mutations.ic_mutations = np.concatenate((np.transpose(a), state.initial[a].reshape(-1,1), new_state.initial[a].reshape(-1,1)), axis=1).tolist()
 
         #Mutate SRT.
-        if (self.strict): 
-            #Chooses SRT cells to mutate with probability mutate_p,
-            #then chooses individual rules within the chosen SRT cells to mutate with probability rule_mutate_p
-            new_state.rules = state.rules + (np.random.rand(state.rules.shape[0], state.rules.shape[1], state.rules.shape[2], 1) < self.mutate_p) * (np.random.rand(state.rules.shape[0], state.rules.shape[1], state.rules.shape[2], state.rules.shape[3]) < self.rule_mutate_p) * np.random.randint(1, self.states, size=state.rules.shape)
-        else:
-            #Selects arbitrary SRT cells with probability rule_mutate_p
-            new_state.rules = state.rules + (np.random.rand(state.rules.shape[0],state.rules.shape[1],state.rules.shape[2],state.rules.shape[3]) < self.rule_mutate_p)*np.random.randint(1, self.states, size=state.rules.shape)
-        new_state.rules = new_state.rules%self.states
-        a = np.nonzero(new_state.rules != state.rules)
-        mutations.srt_mutations = np.concatenate((np.transpose(a), state.rules[a].reshape(-1,1), new_state.rules[a].reshape(-1,1)), axis=1).tolist()
+        if (self.srt_enable):
+            if (self.strict): 
+                #Chooses SRT cells to mutate with probability mutate_p,
+                #then chooses individual rules within the chosen SRT cells to mutate with probability rule_mutate_p
+                new_state.rules = state.rules + (np.random.rand(state.rules.shape[0], state.rules.shape[1], state.rules.shape[2], 1) < self.mutate_p) * (np.random.rand(state.rules.shape[0], state.rules.shape[1], state.rules.shape[2], state.rules.shape[3]) < self.rule_mutate_p) * np.random.randint(1, self.states, size=state.rules.shape)
+            else:
+                #Selects arbitrary SRT cells with probability rule_mutate_p
+                new_state.rules = state.rules + (np.random.rand(state.rules.shape[0],state.rules.shape[1],state.rules.shape[2],state.rules.shape[3]) < self.rule_mutate_p)*np.random.randint(1, self.states, size=state.rules.shape)
+            new_state.rules = new_state.rules%self.states
+            a = np.nonzero(new_state.rules != state.rules)
+            mutations.srt_mutations = np.concatenate((np.transpose(a), state.rules[a].reshape(-1,1), new_state.rules[a].reshape(-1,1)), axis=1).tolist()
 
         return (new_state, mutations)
