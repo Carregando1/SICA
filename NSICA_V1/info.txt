@@ -1,0 +1,1 @@
+This version, V1, removes comments regarding for loop usage and removes the n <= 12 limit because of the more versatile for-loop implementation. Additionally, this version incorporates JAX JIT speedups after changing the mutations and optimize algorithms to use jax.numpy. (In Progress)
