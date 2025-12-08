@@ -1,0 +1,1 @@
+#state.py and the CurrentState class have been rendered obsolete in this version of NSICA. See: transition.py, mutations.py.
